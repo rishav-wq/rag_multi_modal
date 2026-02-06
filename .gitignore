@@ -1,0 +1,46 @@
+# Python cache and bytecode
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment variables (contains API keys!)
+.env
+
+# Vector store artifacts
+artifacts/
+*.index
+*.pkl
+
+# Document files (add your own)
+data/*.txt
+data/*.pdf
+# Keep the assignment documents
+!data/doc*.md
+!data/.gitkeep
+
+# Screenshots for documentation (keep these!)
+# screenshots/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test and debug files
+test_*.py
+check_*.py
+
+# Evaluation results (optional - can commit if you want)
+# evaluation_results.json

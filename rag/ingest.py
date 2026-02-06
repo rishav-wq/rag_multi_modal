@@ -1,0 +1,69 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, List
+
+from .config import DATA_DIR, ensure_data_dir
+from .embeddings import EmbeddingModel
+from .vector_store import FaissVectorStore
+
+
+def load_text_from_file(path: Path) -> str:
+    # Support .txt and .md (markdown) files
+    if path.suffix.lower() in [".txt", ".md"]:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    raise ValueError(f"Unsupported file type: {path.suffix}. Supported: .txt, .md")
+
+
+def simple_chunk_text(text: str, max_chars: int = 800, overlap: int = 200) -> List[str]:
+    """Naive character-based chunking with overlap."""
+    chunks: List[str] = []
+    start = 0
+    n = len(text)
+    while start < n:
+        end = min(start + max_chars, n)
+        chunk = text[start:end].strip()
+        if chunk:
+            chunks.append(chunk)
+        start += max_chars - overlap
+    return chunks
+
+
+def ingest_documents() -> None:
+    """Load documents from DATA_DIR, chunk, embed, and build FAISS index."""
+    ensure_data_dir()
+    # Get all files and filter for supported extensions (.txt, .md)
+    files = sorted(
+        p for p in DATA_DIR.iterdir() 
+        if p.is_file() and p.suffix.lower() in [".txt", ".md"]
+    )
+    if not files:
+        raise RuntimeError(f"No .txt or .md files found in {DATA_DIR}. Place your documents there.")
+
+    all_chunks: List[str] = []
+    metadatas: List[Dict] = []
+
+    for doc_id, path in enumerate(files):
+        text = load_text_from_file(path)
+        chunks = simple_chunk_text(text)
+        for chunk_id, chunk in enumerate(chunks):
+            all_chunks.append(chunk)
+            metadatas.append(
+                {
+                    "doc_id": doc_id,
+                    "source": path.name,
+                    "chunk_id": chunk_id,
+                    "text": chunk,
+                }
+            )
+
+    embedder = EmbeddingModel()
+    embeddings = embedder.embed(all_chunks)
+
+    store = FaissVectorStore()
+    store.build(embeddings, metadatas)
+
+
+if __name__ == "__main__":
+    ingest_documents()
+

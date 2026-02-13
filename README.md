@@ -2,6 +2,8 @@
 
 A Retrieval-Augmented Generation (RAG) system for construction marketplace queries using semantic search and LLM-powered responses.
 
+**🚀 Live Demo**: https://ragmultimodal-vcy4dohqcpwpbge7lrfpc9.streamlit.app/
+
 ## Features
 
 - **Semantic Search** - FAISS vector index with sentence-transformers embeddings

@@ -1,8 +1,5 @@
-fastapi
-uvicorn
+streamlit
 sentence-transformers
 faiss-cpu
 python-dotenv
 requests
-python-multipart
-jinja2

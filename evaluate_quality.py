@@ -1,13 +1,11 @@
 """
 Quality Evaluation Script for RAG System
 
-This script performs automated testing of the RAG system with predefined questions.
-It evaluates:
+Performs automated testing of the RAG system with predefined questions.
+Evaluates:
 - Retrieval relevance (are the right chunks retrieved?)
 - Answer grounding (is the answer based on context?)
 - Answer completeness (does it address the question?)
-
-This is a BONUS feature as mentioned in the assignment requirements.
 """
 
 from __future__ import annotations

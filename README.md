@@ -1,38 +1,24 @@
-# Construction Marketplace Mini RAG
+# Construction Marketplace RAG System
 
-A **Retrieval-Augmented Generation (RAG) system** for a construction marketplace assistant that provides grounded answers from internal documents.
+A Retrieval-Augmented Generation (RAG) system for construction marketplace queries using semantic search and LLM-powered responses.
 
-## ✨ Features
+## Features
 
-- ✅ **Semantic Search** - FAISS vector index with sentence-transformers embeddings
-- ✅ **Grounded Answers** - LLM responses strictly based on retrieved context
-- ✅ **Transparent** - Shows retrieved chunks with sources and similarity scores
-- ✅ **Multiple LLM Options** - Groq (fast), OpenRouter (flexible), Ollama (offline)
-- ✅ **Custom Web UI** - Clean interface with side-by-side chat and context display
-- ✅ **Quality Evaluation** - Automated testing script (bonus feature)
+- **Semantic Search** - FAISS vector index with sentence-transformers embeddings
+- **Grounded Answers** - LLM responses strictly based on retrieved context
+- **Source Attribution** - Shows retrieved chunks with sources and similarity scores
+- **Multiple LLM Options** - Groq (fast), OpenRouter, Ollama (offline)
+- **Streamlit UI** - Clean Python-based chat interface
+- **Quality Evaluation** - Automated testing script
 
-## 📸 Demo
-
-### Online vs Offline Comparison
-
-![RAG System Demo](screenshots/online_vs_offline_comparison.png)
-
-*Comparison of Online (Groq) vs Offline (phi3:mini) responses to the same query. Both modes retrieve identical context chunks but generate different answer styles. Mode badges clearly indicate which LLM generated each response.*
-
-**Key Features Shown:**
-- ⚡ **Online Mode (Groq)**: Fast, concise responses (~1-2 seconds)
-- 💻 **Offline Mode (phi3:mini)**: Detailed responses, works offline (~10-30 seconds)
-- 📄 **Context Panel**: Shows retrieved chunks with sources and similarity scores
-- 🎯 **Grounded Answers**: All responses based on retrieved document context
-
-## 🏗️ Architecture
+## Architecture
 
 ```
 User Question
      ↓
 [Embedding Model] sentence-transformers/all-MiniLM-L6-v2
      ↓
-[Vector Search] FAISS  top-5 similarity search
+[Vector Search] FAISS top-5 similarity search
      ↓
 [Retrieved Chunks] With sources + scores
      ↓
@@ -41,22 +27,42 @@ User Question
 Grounded Answer
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
-### 1. Install Dependencies
+### Local Development
 
-```powershell
-# Create and activate virtual environment
+```bash
+# 1. Clone repository
+git clone https://github.com/yourusername/rag-construction.git
+cd rag-construction
+
+# 2. Create virtual environment
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.venv\Scripts\activate  # Windows
+# source .venv/bin/activate  # Linux/Mac
 
-# Install packages
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Configure environment
+cp .env.example .env
+# Edit .env and add your GROQ_API_KEY from https://console.groq.com
+
+# 5. Run the app
+streamlit run app.py
 ```
 
-### 2. Configure API Key
+**Open**: http://localhost:8501
 
-Create `.env` file:
+### First Time Setup
+
+1. Click **"Build Index"** in the sidebar
+2. Wait for index to build (~30 seconds)
+3. Start asking questions!
+
+## Configuration
+
+Create a `.env` file with your API keys:
 
 ```bash
 # Groq (Recommended - Fast & Free)
@@ -72,265 +78,150 @@ USE_OLLAMA=false
 OLLAMA_MODEL=llama3.2
 ```
 
-**Get Groq API Key:** [console.groq.com](https://console.groq.com/) (Free)
+**Get Groq API Key**: [console.groq.com](https://console.groq.com/) (Free tier available)
 
-### 3. Add Documents
+## Usage
 
-Place your construction documents (`.txt` format) in the `data/` folder:
+### Add Your Documents
+
+Place your construction documents (`.txt` or `.md` format) in the `data/` folder:
 
 ```
 data/
-  ├── doc1.txt
-  ├── doc2.txt
-  └── doc3.txt
+  ├── doc1.md
+  ├── doc2.md
+  └── doc3.md
 ```
 
-**Document Links:**
-1. https://drive.google.com/file/d/1oWcyH0XkzpHeWozMBWJSFEUEw70Lrc2-/view?usp=sharing
-2. https://drive.google.com/file/d/1m1SudlRSlEK7y_-jweDjhPB5VVWzmQ7-/view?usp=sharing
-3. https://drive.google.com/file/d/1suFO8EBLxRH6hKKcJln4a9PRsOGu2oYj/view?usp=sharing
+### Running the App
 
-Verify: `python check_documents.py`
-
-### 4. Run the Application
-
-```powershell
-uvicorn main:app --reload
+```bash
+streamlit run app.py
 ```
 
-**Open:** http://localhost:8000
+### Using the Interface
 
-### 5. Usage
+1. **Build Index** - Click "Build Index" in sidebar (first time only)
+2. **Select Mode** - Choose "Online (Groq)" or "Offline (Ollama)"
+3. **Ask Questions** - Type or use sample questions from sidebar
+4. **View Context** - Expand sections to see retrieved document chunks
 
-1. **Click "(Re)build Index"** - Processes documents and builds vector index
-2. **Select LLM Mode** - "Online" (Groq) or "Offline" (Ollama)
-3. **Ask Questions** - e.g., "What factors affect construction project delays?"
-4. **View Results** - Answer + retrieved context chunks with sources
+## Deployment to Streamlit Cloud (Free!)
 
-## 📋 How It Works
+### Step 1: Push to GitHub
 
-### Document Processing
+```bash
+# Initialize git (if not already)
+git init
+git add .
+git commit -m "Initial commit - RAG system"
 
-**File:** `rag/ingest.py`
-
-1. Load `.txt` files from `data/`
-2. Chunk text (800 chars with 200-char overlap)
-3. Generate embeddings using `sentence-transformers`
-4. Build FAISS index + save metadata
-
-### Retrieval
-
-**Files:** `rag/vector_store.py`, `rag/retriever.py`
-
-- FAISS inner-product index (L2-normalized vectors)
-- Semantic search returns top-k most relevant chunks
-- Metadata includes source file, chunk ID, similarity score
-
-### Answer Generation
-
-**File:** `rag/llm.py`
-
-**Grounding Strategy:**
-```
-Prompt Template:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-You are an AI assistant for construction marketplace.
-ONLY answer using the provided document chunks.
-If answer not in context → say "I don't know"
-Do NOT invent facts.
-
-Context:
-[Chunk 1 | source=doc1.txt | score=0.842]
-<text>
-
-Question: ...
-Answer:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Create repository on GitHub, then:
+git remote add origin https://github.com/yourusername/rag-construction.git
+git branch -M main
+git push -u origin main
 ```
 
-**LLM Providers:**
-- **Groq**: Ultra-fast (~80 tok/sec) with `llama-3.1-8b-instant`
-- **OpenRouter**: Access to Grok, GPT-4, Claude, 200+ models
-- **Ollama**: Run offline with local models
+### Step 2: Deploy on Streamlit Cloud
 
-**Anti-hallucination Measures:**
-1. Explicit instruction to use only context
-2. Context shown with sources and scores
-3. Prompted to admit knowledge gaps
-4. Low temperature (0.3) for focused responses
+1. Go to [share.streamlit.io](https://share.streamlit.io)
+2. Click **"New app"**
+3. Select your repository: `yourusername/rag-construction`
+4. Set main file: `app.py`
+5. Click **"Advanced settings"** → **"Secrets"**
+6. Add your API key:
+   ```toml
+   GROQ_API_KEY = "your_groq_api_key_here"
+   LLM_PROVIDER = "groq"
+   ```
+7. Click **"Deploy"**
+8. Wait 2-3 minutes for deployment
+9. Get your public URL: `https://your-app.streamlit.app`
 
-## 🧪 Quality Evaluation (Bonus)
+### Step 3: Share Your Demo
 
-Run automated testing:
+Your app is now live! Share the URL for your assignment submission.
 
-```powershell
-python evaluate_quality.py
-```
+**Note**: First-time visitors should click "Build Index" before asking questions.
 
-**Evaluates:**
-- ✓ Retrieval relevance (similarity scores)
-- ✓ Answer grounding (no hallucinations)
-- ✓ Completeness (addresses the question)
-- ✓ Knowledge gaps (appropriate "don't know")
-
-**Output:** Detailed JSON report with metrics for 12 test questions
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 rag_implement/
-├── main.py                 # FastAPI server
-├── requirements.txt        # Dependencies
-├── .env                    # Configuration
-├── check_documents.py      # Document verification
-├── evaluate_quality.py     # Quality testing (bonus)
-│
-├── rag/                    # Core implementation
-│   ├── config.py          # Settings
-│   ├── embeddings.py      # Sentence-transformers wrapper
-│   ├── ingest.py          # Document processing
-│   ├── llm.py             # LLM integration
-│   ├── retriever.py       # Semantic search
-│   └── vector_store.py    # FAISS management
-│
-├── data/                  # Your documents
-├── artifacts/             # Generated index & metadata
-├── templates/             # Frontend HTML
-└── static/               # CSS & JavaScript
+├── app.py                  # Streamlit application
+├── requirements.txt        # Python dependencies
+├── .env.example           # Environment template
+├── rag/                   # Core RAG logic
+│   ├── config.py         # Configuration
+│   ├── embeddings.py     # Sentence transformers
+│   ├── ingest.py         # Document processing
+│   ├── llm.py           # LLM integration
+│   ├── retriever.py     # Vector search
+│   └── vector_store.py  # FAISS index
+├── data/                 # Document storage
+└── .streamlit/          # Streamlit configuration
 ```
 
-## 🎯 Assignment Requirements
+## How It Works
 
-| Requirement | Implementation | Status |
-|------------|----------------|--------|
-| Document chunking | Overlapping 800-char chunks | ✅ |
-| Embeddings | sentence-transformers/all-MiniLM-L6-v2 | ✅ |
-| Vector indexing | FAISS inner-product index | ✅ |
-| Semantic retrieval | Top-k similarity search | ✅ |
-| Grounded generation | Explicit prompt instructions | ✅ |
-| Anti-hallucination | Context-only constraints | ✅ |
-| Transparency | Shows chunks + sources + scores | ✅ |
-| Custom frontend | Chat + context panel UI | ✅ |
-| **Bonus:** Local LLM | Ollama integration | ✅ |
-| **Bonus:** Quality eval | 12 test questions + metrics | ✅ |
+### Document Processing
 
-## � Quality Evaluation Results
+1. Load `.txt` or `.md` files from `data/` folder
+2. Chunk text (800 chars with 200-char overlap)
+3. Generate embeddings using sentence-transformers
+4. Build FAISS index and save metadata
 
-**Test Setup:**
-- 12 construction-related questions
-- Evaluated: retrieval relevance, grounding, hallucination detection
-- LLM Provider: Groq (llama-3.1-8b-instant)
+### Query Processing
 
-**Results (First 6 questions completed successfully):**
+1. User asks a question
+2. Convert question to embedding
+3. Retrieve top-5 similar chunks from FAISS
+4. Build prompt with retrieved context
+5. Send to LLM (Groq/Ollama)
+6. Display answer with sources
 
-| Metric | Result | Analysis |
-|--------|--------|----------|
-| **Avg Retrieval Score** | 0.352 | ✅ Above 0.3 threshold (good relevance) |
-| **"Don't Know" Responses** | 2/6 (33%) | ✅ Correctly admits knowledge gaps |
-| **Hallucinations** | 0 | ✅ All answers grounded in context |
-| **Successful Retrievals** | 6/6 (100%) | ✅ Always returns 5 relevant chunks |
+## Quality Evaluation
 
-**Questions 7-12:** Hit Groq free tier rate limit (6000 tokens/minute). This demonstrates:
-- ✅ System works correctly - not a quality issue
-- ⚠️ Free API has usage constraints
-- 💡 **Solution:** Use offline mode (phi3:mini) for unlimited evaluation
+Run automated testing:
 
-**Key Findings:**
-1. **Grounding Works** - System says "I don't know" when answer isn't in documents (33%)
-2. **No Hallucinations** - All answers strictly use retrieved context
-3. **Good Retrieval** - Average similarity score 0.352 shows relevant chunk selection
-4. **Transparent** - Shows sources, scores, and retrieved chunks for verification
-
-Run evaluation yourself: `python evaluate_quality.py`
-
-## �🔧 Configuration Options
-
-### LLM Providers
-
-**Groq (Default)**
 ```bash
-LLM_PROVIDER=groq
-GROQ_API_KEY=your_key
-GROQ_MODEL=llama-3.1-8b-instant  # or llama-3.1-70b-versatile
+python evaluate_quality.py
 ```
 
-**OpenRouter (Alternative)**
-```bash
-LLM_PROVIDER=openrouter
-OPENROUTER_API_KEY=your_key
-OPENROUTER_MODEL=x-ai/grok-beta  # or openai/gpt-4o-mini
-```
+Results saved to `evaluation_results.json` and `EVALUATION_RESULTS.md`
 
-**Ollama (Offline)**
-```bash
-USE_OLLAMA=true
-OLLAMA_MODEL=llama3.2
-```
-*Requires Ollama installed: https://ollama.ai/*
+## Sample Questions
 
-### Why Groq?
+Try these questions based on the included construction documents:
 
-- ⚡ **Ultra-fast**: ~80 tokens/second
-- 💰 **Free tier**: Generous quota
-- 🎯 **Quality**: Llama 3.1 models
-- 🔌 **Easy**: OpenAI-compatible API
+1. "What is Indecimal's delay management policy?"
+2. "How many quality checks does Indecimal perform?"
+3. "What are the customer journey stages?"
+4. "How does the escrow payment system work?"
+5. "What makes Indecimal different from competitors?"
 
-## 📝 API Endpoints
+## Technologies Used
 
-- `GET /` - Web UI
-- `POST /api/ingest` - Build vector index from documents
-- `POST /api/chat` - Ask question, get grounded answer
+- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2
+- **Vector DB**: FAISS (Facebook AI Similarity Search)
+- **LLM**: Groq API (llama-3.1-8b-instant)
+- **Framework**: Streamlit for UI, FastAPI as alternative
+- **Chunking**: Character-based with overlap
 
-## 🚢 Deployment
+## Troubleshooting
 
-For production deployment:
+**"Index not found" error:**
+- Click "Build Index" button in sidebar
+- Wait for confirmation message
 
-1. **Environment Variables**
-   - Set `GROQ_API_KEY` or `OPENROUTER_API_KEY`
-   - Configure `LLM_PROVIDER`
+**Slow first load:**
+- Streamlit downloads embedding model (~80MB) on first run
+- Subsequent loads are fast
 
-2. **Run with Uvicorn**
-   ```powershell
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
+**API errors:**
+- Verify GROQ_API_KEY in `.env` or Streamlit Cloud secrets
+- Check API key is valid at https://console.groq.com/
 
-3. **Optional: Docker** (create `Dockerfile` if needed)
+## License
 
-## 📊 Model Choices & Rationale
-
-### Embedding Model
-**sentence-transformers/all-MiniLM-L6-v2**
-- ✅ Fast (< 100MB, CPU-friendly)
-- ✅ Good quality for semantic search
-- ✅ Well-maintained and popular
-
-### LLM
-**Groq with llama-3.1-8b-instant**
-- ✅ Ultra-fast inference (best user experience)
-- ✅ Free tier available
-- ✅ Good instruction-following for RAG
-- ✅ Low hallucination rate with proper prompting
-
-### Vector Store
-**FAISS (Facebook AI Similarity Search)**
-- ✅ Industry standard for vector search
-- ✅ Fast inner-product similarity
-- ✅ Works offline (no managed service needed)
-- ✅ Scales to millions of vectors
-
-## 🤝 Contributing
-
-This project was built for the AI Engineer assignment. Key features:
-- Clean, modular architecture
-- Type hints throughout
-- Comprehensive error handling
-- Documented functions
-- Quality evaluation included
-
-## 📄 License
-
-MIT License - Feel free to use for learning and development.
-
----
-
-**Built with:** FastAPI, FAISS, Sentence-Transformers, Groq, and ❤️
+MIT License - feel free to use for educational purposes

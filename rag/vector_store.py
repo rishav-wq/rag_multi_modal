@@ -11,7 +11,7 @@ from .config import FAISS_INDEX_PATH, METADATA_PATH
 
 
 class FaissVectorStore:
-    """Simple FAISS-based vector store with JSON metadata."""
+    # FAISS-based vector store with JSON metadata
 
     def __init__(
         self,
@@ -26,14 +26,16 @@ class FaissVectorStore:
     def _ensure_dim(self, dim: int) -> None:
         if self.index is None:
             # Use inner product index; normalize embeddings before add/search
+            # could also try IndexFlatL2 but IP works better with normalized vecs
             self.index = faiss.IndexFlatIP(dim)
 
     def build(self, embeddings: List[List[float]], metadatas: List[Dict[str, Any]]) -> None:
         if len(embeddings) == 0:
             raise ValueError("No embeddings to build index.")
 
+        # convert to numpy array and normalize for cosine similarity
         x = np.array(embeddings, dtype="float32")
-        faiss.normalize_L2(x)
+        faiss.normalize_L2(x)  # important for IndexFlatIP to work as cosine
         self._ensure_dim(x.shape[1])
         self.index.add(x)
         self.metadata = metadatas
@@ -62,11 +64,12 @@ class FaissVectorStore:
             self.load()
 
         xq = np.array([query_embedding], dtype="float32")
-        faiss.normalize_L2(xq)
+        faiss.normalize_L2(xq)  # normalize query vector
         scores, indices = self.index.search(xq, top_k)
+        
         results: List[Tuple[Dict[str, Any], float]] = []
         for idx, score in zip(indices[0], scores[0]):
-            if idx == -1:
+            if idx == -1:  # faiss returns -1 for missing results
                 continue
             meta = self.metadata[int(idx)]
             results.append((meta, float(score)))
